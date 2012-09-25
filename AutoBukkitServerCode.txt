@@ -1,3 +1,4 @@
+--github does not support viewing of .scpt files. Therefor it is uploaded as a text file aswell.
 activate
 display dialog "Click Start to install your own Bukkit server!" with title "Craftbukkit Installer" buttons {"Cancel", "Start"} default button "Start" with icon 1
 
