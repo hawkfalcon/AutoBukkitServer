@@ -1,10 +1,129 @@
-activatedisplay dialog "Click Start to install your own Bukkit server!" with title "Craftbukkit Installer" buttons {"Cancel", "Start"} default button "Start" with icon 1property CraftBukkit : "CraftBukkit"try	set targetFolder to (choose folder)end tryset RAM to the text returned of (display dialog "Please choose how many gigabytes of ram you would like the server to have:" default answer "2" with title "AutoBukkitServer" with icon 1)set whichbuild to button returned of (display dialog "Please choose which build to use." with title "AutoBukkitServer" with icon 1 buttons {"Dev", "Beta", "Recommended"} default button "Recommended")if whichbuild is "Recommended" then	set fileURL to "http://dl.bukkit.org/downloads/craftbukkit/get/latest-rb/craftbukkit.jar"end ifif whichbuild is "Beta" then	set fileURL to "http://dl.bukkit.org/downloads/craftbukkit/get/latest-beta/craftbukkit.jar"end ifif whichbuild is "Dev" then	set fileURL to "http://dl.bukkit.org/downloads/craftbukkit/get/latest-dev/craftbukkit.jar"end ifdisplay dialog "Please wait while the server installsÉ" with title "AutoBukkitServer" giving up after 1 with icon 1tell application "Finder"	if not (exists folder CraftBukkit of targetFolder) then		make new folder at targetFolder with properties {name:CraftBukkit}	end ifend tellset craftPath to POSIX path of (targetFolder as alias) & "CraftBukkit/"set jarcheck to craftPath & "craftbukkit.jar"set craftFolder to quoted form of jarcheckset craftFile to craftPath & "start_server.command"set lastPath to quoted form of craftFileset servprop to craftPath & "server.properties"set theProp to quoted form of servpropset thebool to 1set userunpath to craftPath & "ops.txt"set userpath to quoted form of userunpathdo shell script "echo '#!/bin/bash
-cd \"$(dirname \"$0\")\"
-java -server -Xmx" & (round RAM rounding up) & "G -jar ./craftbukkit.jar' > " & lastPathdo shell script "chmod +x " & lastPathtell application "Finder"	if (exists (jarcheck as POSIX file)) then		set thebool to 0	else		set thebool to 1	end ifend tellif thebool is 1 then	set DownloadedSize to 1	do shell script "/usr/bin/curl -L " & fileURL & " -o " & craftFolder & " > /dev/null 2>&1 &"	delay 1	set fileSize to getDownloadSize(fileURL)	delay 1	-- Display Progress	repeat until DownloadedSize = fileSize		set DownloadedSize to getFileSize(jarcheck)		set DisplaySize to round DownloadedSize / fileSize * 100		display dialog "
-Downloading server filesÉ
+activate
+display dialog "Click Start to install your own Bukkit server!" with title "Craftbukkit Installer" buttons {"Cancel", "Start"} default button "Start" with icon 1
 
-" & (DisplaySize as string) & "% complete" with title "AutoBukkitServer" buttons {"Refresh"} default button 1 with icon 1 giving up after 3	end repeat	end if-- Get the size to Downloadon getDownloadSize(theURL)	try		-- Get's the http header, and extracts the file size		set DownloadSize to do shell script "/usr/bin/curl -LSI " & theURL & " -s | grep 'Content-Length' | sed -n 2p | cut -d ' ' -f 2"		-- converts it to kilobytes		set DownloadSize to DownloadSize / 1024 as integer		return DownloadSize	on error		return 0	end tryend getDownloadSize-- Get the Downloaded sizeon getFileSize(theFile)	set fileSize to size of (info for theFile)	set fileSize to round (fileSize / 1024)	return fileSizeend getFileSizeset theProperty to display dialog "Server file downloaded!
-Next step:Setup the server properties file. Choose \"Auto\" or \"Manual\"" with title "AutoBukkitServer" with icon 1 buttons {"Cancel", "Manual", "Auto"} default button "Auto"if button returned of theProperty is "Manual" then	set auto to 0end ifif button returned of theProperty is "Auto" then	set auto to 1end ifif auto = 1 then	set nether to (choose from list {"true", "false"} with prompt "Allow Nether:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "True")	set worldname to text returned of (display dialog "World name:" default answer "world" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")	set flight to (choose from list {"true", "false"} with prompt "Allow Flight:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "False")	set creatures to (choose from list {"true", "false"} with prompt "Allow Mobs/Animals/NPCs:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "True")		set type to (choose from list {"DEFAULT", "FLAT", "LARGEBIOMES"} with prompt "World type:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "DEFAULT")	set Seed to text returned of (display dialog "World seed:" default answer "" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")	set white to (choose from list {"true", "false"} with prompt "White list:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "False")	set pvp to (choose from list {"true", "false"} with prompt "PVP:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "True")	set diff to (choose from list {"Peaceful", "Easy", "Normal", "Hard"} with prompt "Difficulty:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "Normal")	set mode to (choose from list {"Creative", "Survival"} with prompt "Gamemode:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "Survival")	set maxnumber to text returned of (display dialog "Max players:" default answer "20" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")	set MOTD to text returned of (display dialog "MOTD:" default answer "A Minecraft Server" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")		if diff contains (localized string of "Peaceful") then		set diff to 0	else if diff contains (localized string of "Easy") then		set diff to 1	else if diff contains (localized string of "Normal") then		set diff to 2	else if diff contains (localized string of "Hard") then		set diff to 3	end if		if mode contains (localized string of "Creative") then		set mode to 0	else if mode contains (localized string of "Survival") then		set mode to 1	end if	set props to "#Server set up by AutoBukkitServer http://bit.ly/autobukkit
+property CraftBukkit : "CraftBukkit"
+
+try
+	set targetFolder to (choose folder)
+end try
+set RAM to the text returned of (display dialog "Please choose how many gigabytes of ram you would like the server to have:" default answer "2" with title "AutoBukkitServer" with icon 1)
+set whichbuild to button returned of (display dialog "Please choose which build to use." with title "AutoBukkitServer" with icon 1 buttons {"Dev", "Beta", "Recommended"} default button "Recommended")
+if whichbuild is "Recommended" then
+	set fileURL to "http://dl.bukkit.org/downloads/craftbukkit/get/latest-rb/craftbukkit.jar"
+end if
+if whichbuild is "Beta" then
+	set fileURL to "http://dl.bukkit.org/downloads/craftbukkit/get/latest-beta/craftbukkit.jar"
+end if
+if whichbuild is "Dev" then
+	set fileURL to "http://dl.bukkit.org/downloads/craftbukkit/get/latest-dev/craftbukkit.jar"
+end if
+
+display dialog "Please wait while the server installsâ€¦" with title "AutoBukkitServer" giving up after 1 with icon 1
+tell application "Finder"
+	if not (exists folder CraftBukkit of targetFolder) then
+		make new folder at targetFolder with properties {name:CraftBukkit}
+	end if
+end tell
+set craftPath to POSIX path of (targetFolder as alias) & "CraftBukkit/"
+set jarcheck to craftPath & "craftbukkit.jar"
+set craftFolder to quoted form of jarcheck
+set craftFile to craftPath & "start_server.command"
+set lastPath to quoted form of craftFile
+set servprop to craftPath & "server.properties"
+set theProp to quoted form of servprop
+set thebool to 1
+set userunpath to craftPath & "ops.txt"
+set userpath to quoted form of userunpath
+
+do shell script "echo '#!/bin/bash
+cd \"$(dirname \"$0\")\"
+java -server -Xmx" & (round RAM rounding up) & "G -jar ./craftbukkit.jar' > " & lastPath
+do shell script "chmod +x " & lastPath
+tell application "Finder"
+	if (exists (jarcheck as POSIX file)) then
+		set thebool to 0
+	else
+		set thebool to 1
+	end if
+end tell
+if thebool is 1 then
+	set DownloadedSize to 1
+	do shell script "/usr/bin/curl -L " & fileURL & " -o " & craftFolder & " > /dev/null 2>&1 &"
+	delay 1
+	set fileSize to getDownloadSize(fileURL)
+	delay 1
+	-- Display Progress
+	repeat until DownloadedSize = fileSize
+		set DownloadedSize to getFileSize(jarcheck)
+		set DisplaySize to round DownloadedSize / fileSize * 100
+		display dialog "
+Downloading server filesâ€¦
+
+" & (DisplaySize as string) & "% complete" with title "AutoBukkitServer" buttons {"Refresh"} default button 1 with icon 1 giving up after 3
+	end repeat
+	
+end if
+
+
+-- Get the size to Download
+on getDownloadSize(theURL)
+	try
+		-- Get's the http header, and extracts the file size
+		set DownloadSize to do shell script "/usr/bin/curl -LSI " & theURL & " -s | grep 'Content-Length' | sed -n 2p | cut -d ' ' -f 2"
+		-- converts it to kilobytes
+		set DownloadSize to DownloadSize / 1024 as integer
+		return DownloadSize
+	on error
+		return 0
+	end try
+end getDownloadSize
+
+-- Get the Downloaded size
+on getFileSize(theFile)
+	set fileSize to size of (info for theFile)
+	set fileSize to round (fileSize / 1024)
+	return fileSize
+end getFileSize
+set theProperty to display dialog "Server file downloaded!
+Next step:
+Setup the server properties file. Choose \"Auto\" or \"Manual\"" with title "AutoBukkitServer" with icon 1 buttons {"Cancel", "Manual", "Auto"} default button "Auto"
+if button returned of theProperty is "Manual" then
+	set auto to 0
+end if
+if button returned of theProperty is "Auto" then
+	set auto to 1
+end if
+if auto = 1 then
+	set nether to (choose from list {"true", "false"} with prompt "Allow Nether:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "True")
+	set worldname to text returned of (display dialog "World name:" default answer "world" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")
+	set flight to (choose from list {"true", "false"} with prompt "Allow Flight:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "False")
+	set creatures to (choose from list {"true", "false"} with prompt "Allow Mobs/Animals/NPCs:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "True")
+	
+	set type to (choose from list {"DEFAULT", "FLAT", "LARGEBIOMES"} with prompt "World type:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "DEFAULT")
+	set Seed to text returned of (display dialog "World seed:" default answer "" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")
+	set white to (choose from list {"true", "false"} with prompt "White list:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "False")
+	set pvp to (choose from list {"true", "false"} with prompt "PVP:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "True")
+	set diff to (choose from list {"Peaceful", "Easy", "Normal", "Hard"} with prompt "Difficulty:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "Normal")
+	set mode to (choose from list {"Creative", "Survival"} with prompt "Gamemode:" with title "AutoBukkitServer" OK button name "Continue" cancel button name "Cancel" default items "Survival")
+	set maxnumber to text returned of (display dialog "Max players:" default answer "20" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")
+	set MOTD to text returned of (display dialog "MOTD:" default answer "A Minecraft Server" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")
+	
+	if diff contains (localized string of "Peaceful") then
+		set diff to 0
+	else if diff contains (localized string of "Easy") then
+		set diff to 1
+	else if diff contains (localized string of "Normal") then
+		set diff to 2
+	else if diff contains (localized string of "Hard") then
+		set diff to 3
+	end if
+	
+	if mode contains (localized string of "Creative") then
+		set mode to 0
+	else if mode contains (localized string of "Survival") then
+		set mode to 1
+	end if
+	set props to "#Server set up by AutoBukkitServer http://bit.ly/autobukkit
 #Minecraft server properties
 allow-nether=" & nether & "
 level-name=" & worldname & "
@@ -28,7 +147,20 @@ spawn-monsters=" & creatures & "
 generate-structures=true
 view-distance=10
 motd=" & MOTD & "
-"	do shell script "echo " & quoted form of props & " > " & theProp	end ifset userName to text returned of (display dialog "Your Minecraft Username:" default answer "Notch" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")do shell script "echo " & quoted form of userName & " >" & userpathtell application "Terminal"	activate	open craftFileend tellactivatedo shell script "curl http://automation.whatismyip.com/n09230945.asp | pbcopy"set returnedip to do shell script "curl http://automation.whatismyip.com/n09230945.asp"display dialog "Server has been successfully set up! 
+"
+	do shell script "echo " & quoted form of props & " > " & theProp
+	
+end if
+set userName to text returned of (display dialog "Your Minecraft Username:" default answer "Notch" buttons {"Cancel", "Continue"} default button 2 with title "AutoBukkitServer")
+do shell script "echo " & quoted form of userName & " >" & userpath
+tell application "Terminal"
+	activate
+	open craftFile
+end tell
+activate
+do shell script "curl http://automation.whatismyip.com/n09230945.asp | pbcopy"
+set returnedip to do shell script "curl http://automation.whatismyip.com/n09230945.asp"
+display dialog "Server has been successfully set up! 
 
 Your server IP has been 
 copied to your clipboard
@@ -50,5 +182,25 @@ Things to keep in mind:
 3. /reload causes memory leaks, so don't use it
    
 4. Download plugins and put them in 
-    the \"Plugins\" folder" buttons {"Cancel", "Next"} default button "Next" with icon 1 with title "AutoBukkitServer"set portUrl to "http://portforward.com/english/applications/port_forwarding/Minecraft_Server/"set portForward to display dialog " Next step: 
- Forward your ports!" with title "AutoBukkitServer" buttons {"Cancel", "Port Forward Guide", "Next"} default button "Next" with icon 1if button returned of portForward is "Port Forward Guide" then	open location portUrlend iftell application "Finder"	activate	open craftPath as POSIX fileend telltell application "TextEdit"	activate	open document servprop as POSIX fileend tellset Donate_URL to "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=MVENJVD6Y6EXJ&lc=US&item_name=hawkfalcon&item_number=hawkfalcon&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"activateset dialogReply to display dialog "Thank you for using AutoBukkitServer. This tool is completely free to use and enjoy. Although, time isn't. I take hours of time out of my life to make and update this tool for you, and donations keep me going!" with title "AutoBukkitServer" buttons {"Cancel", "Donate", "Done"} default button "Donate" with icon 1if button returned of dialogReply is "Donate" then	open location Donate_URLend if
+    the \"Plugins\" folder" buttons {"Cancel", "Next"} default button "Next" with icon 1 with title "AutoBukkitServer"
+set portUrl to "http://portforward.com/english/applications/port_forwarding/Minecraft_Server/"
+
+set portForward to display dialog " Next step: 
+ Forward your ports!" with title "AutoBukkitServer" buttons {"Cancel", "Port Forward Guide", "Next"} default button "Next" with icon 1
+if button returned of portForward is "Port Forward Guide" then
+	open location portUrl
+end if
+tell application "Finder"
+	activate
+	open craftPath as POSIX file
+end tell
+tell application "TextEdit"
+	activate
+	open document servprop as POSIX file
+end tell
+set Donate_URL to "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=MVENJVD6Y6EXJ&lc=US&item_name=hawkfalcon&item_number=hawkfalcon&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
+activate
+set dialogReply to display dialog "Thank you for using AutoBukkitServer. This tool is completely free to use and enjoy. Although, time isn't. I take hours of time out of my life to make and update this tool for you, and donations keep me going!" with title "AutoBukkitServer" buttons {"Cancel", "Donate", "Done"} default button "Donate" with icon 1
+if button returned of dialogReply is "Donate" then
+	open location Donate_URL
+end if
